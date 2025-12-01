@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tictactoe/firebase_options.dart';
@@ -14,7 +15,13 @@ void main() async {
   //todo: use environment variable for the emulator port
   //todo: use environment variable for the emulator host
   // todo: conditionally use the emulator based on the environment variable or kDebugMode
-  FirebaseDatabase.instance.useDatabaseEmulator('localhost', 9000);
+  if (kDebugMode) {
+    try {
+      FirebaseDatabase.instance.useDatabaseEmulator('localhost', 9000);
+    } catch (e) {
+      debugPrint('Error using database emulator: $e');
+    }
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

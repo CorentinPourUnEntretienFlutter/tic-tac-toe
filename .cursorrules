@@ -21,6 +21,7 @@ This is a Flutter application for a Tic Tac Toe game. The project follows Flutte
 - Prefer `const` constructors when possible for performance
 - Use trailing commas for better formatting
 - Maximum line length: 80 characters (configurable in analysis_options.yaml)
+- format on save
 
 ### Flutter Best Practices
 - **Widgets**: Break down complex widgets into smaller, reusable components

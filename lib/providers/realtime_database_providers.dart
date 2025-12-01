@@ -9,9 +9,17 @@ final realtimeDatabaseServiceProvider = Provider<RealtimeDatabaseService>(
 
 /// Stream provider to watch a specific path in the database
 /// Usage: ref.watch(databasePathProvider('/test'))
-final databasePathProvider =
-    StreamProvider.family<DatabaseEvent, String>((ref, path) {
+final databasePathProvider = StreamProvider.family<DatabaseEvent, String>((
+  ref,
+  path,
+) {
   final service = ref.watch(realtimeDatabaseServiceProvider);
   return service.watchPath(path);
 });
 
+/// Stream provider for database connection status
+/// Returns true when connected, false when disconnected
+final databaseConnectionStatusProvider = StreamProvider<bool>((ref) {
+  final service = ref.watch(realtimeDatabaseServiceProvider);
+  return service.connectionStatus;
+});

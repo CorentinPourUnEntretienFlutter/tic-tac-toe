@@ -4,8 +4,9 @@ import 'package:tictactoe/models/game.dart';
 
 /// Service to manage game operations in Firebase Realtime Database
 class GameService {
-  final DatabaseReference _gamesRef =
-      FirebaseDatabase.instance.ref().child('games');
+  final DatabaseReference _gamesRef = FirebaseDatabase.instance.ref().child(
+    'games',
+  );
 
   /// Create a new game
   Future<void> createGame(Game game) async {
@@ -102,5 +103,26 @@ class GameService {
       rethrow;
     }
   }
-}
 
+  /// Restart a finished game
+  Future<void> restartGame(String gameId) async {
+    debugPrint('🎮 Restarting game: $gameId');
+    try {
+      final game = await getGame(gameId);
+      if (game == null) {
+        throw Exception('Game not found');
+      }
+
+      if (game.status != GameStatus.finished) {
+        throw Exception('Can only restart finished games');
+      }
+
+      final restartedGame = game.restart();
+      await updateGame(restartedGame);
+      debugPrint('🎮 Game restarted successfully');
+    } catch (e) {
+      debugPrint('🎮 Error restarting game: $e');
+      rethrow;
+    }
+  }
+}

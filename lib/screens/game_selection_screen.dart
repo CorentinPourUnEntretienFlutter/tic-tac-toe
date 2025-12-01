@@ -4,12 +4,10 @@ import 'package:uuid/uuid.dart';
 import 'package:tictactoe/models/game.dart';
 import 'package:tictactoe/screens/game_screen.dart';
 import 'package:tictactoe/services/game_service.dart';
+import 'package:tictactoe/providers/realtime_database_providers.dart';
 
 class GameSelectionScreen extends ConsumerStatefulWidget {
-  const GameSelectionScreen({
-    super.key,
-    required this.playerName,
-  });
+  const GameSelectionScreen({super.key, required this.playerName});
 
   final String playerName;
 
@@ -38,6 +36,7 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
       final game = Game.newGame(
         id: gameId,
         player1Name: widget.playerName,
+        boardSize: 3,
       );
 
       final gameService = GameService();
@@ -46,10 +45,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => GameScreen(
-              gameId: gameId,
-              playerName: widget.playerName,
-            ),
+            builder: (context) =>
+                GameScreen(gameId: gameId, playerName: widget.playerName),
           ),
         );
       }
@@ -103,10 +100,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => GameScreen(
-              gameId: gameId,
-              playerName: widget.playerName,
-            ),
+            builder: (context) =>
+                GameScreen(gameId: gameId, playerName: widget.playerName),
           ),
         );
       }
@@ -128,10 +123,62 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final connectionStatus = ref.watch(databaseConnectionStatusProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Welcome, ${widget.playerName}!'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          // Connection status indicator
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: connectionStatus.when(
+              data: (isConnected) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isConnected ? Icons.cloud_done : Icons.cloud_off,
+                    color: isConnected ? Colors.green : Colors.red,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isConnected ? 'Connected' : 'Offline',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isConnected ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              loading: () => const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 8),
+                  Text('Checking...', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+              error: (_, __) => const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.orange, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Error',
+                    style: TextStyle(fontSize: 14, color: Colors.orange),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -140,6 +187,41 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Connection status banner (only show when disconnected)
+                  connectionStatus.when(
+                    data: (isConnected) => !isConnected
+                        ? Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              border: Border.all(color: Colors.red.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.red.shade700,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'No database connection. Please check your internet connection.',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+
                   const SizedBox(height: 24),
 
                   // Create game section
@@ -157,9 +239,7 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'Create New Game',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
@@ -213,17 +293,11 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          const Icon(
-                            Icons.login,
-                            size: 64,
-                            color: Colors.blue,
-                          ),
+                          const Icon(Icons.login, size: 64, color: Colors.blue),
                           const SizedBox(height: 16),
                           Text(
                             'Join Existing Game',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
@@ -268,4 +342,3 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
     );
   }
 }
-

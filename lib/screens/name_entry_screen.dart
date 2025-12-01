@@ -22,9 +22,8 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (_formKey.currentState!.validate()) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => GameSelectionScreen(
-            playerName: _nameController.text.trim(),
-          ),
+          builder: (context) =>
+              GameSelectionScreen(playerName: _nameController.text.trim()),
         ),
       );
     }
@@ -47,26 +46,22 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Game icon/title
-                const Icon(
-                  Icons.grid_3x3,
-                  size: 100,
-                  color: Colors.deepPurple,
-                ),
+                const Icon(Icons.grid_3x3, size: 100, color: Colors.deepPurple),
                 const SizedBox(height: 24),
                 Text(
                   'Tic Tac Toe',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Play with friends in real-time!',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
@@ -118,4 +113,3 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     );
   }
 }
-

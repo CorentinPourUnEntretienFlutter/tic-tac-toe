@@ -31,10 +31,10 @@ class GameBoard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(8),
         child: Column(
-          children: List.generate(3, (row) {
+          children: List.generate(board.length, (row) {
             return Expanded(
               child: Row(
-                children: List.generate(3, (col) {
+                children: List.generate(board.length, (col) {
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -55,10 +55,7 @@ class GameBoard extends StatelessWidget {
 }
 
 class _GameCell extends StatelessWidget {
-  const _GameCell({
-    required this.state,
-    required this.onTap,
-  });
+  const _GameCell({required this.state, required this.onTap});
 
   final CellState state;
   final VoidCallback? onTap;
@@ -96,10 +93,7 @@ class _GameCell extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: 2,
-            ),
+            border: Border.all(color: Colors.grey.shade300, width: 2),
           ),
           child: Center(
             child: Text(
@@ -116,4 +110,3 @@ class _GameCell extends StatelessWidget {
     );
   }
 }
-

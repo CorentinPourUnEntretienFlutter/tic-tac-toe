@@ -54,4 +54,54 @@ class RealtimeDatabaseService {
   DatabaseReference getReference(String path) {
     return _db.child(path);
   }
+
+  /// Stream to monitor database connection status
+  /// Returns true when connected, false when disconnected
+  /// Emits immediately with initial connection check
+  Stream<bool> get connectionStatus async* {
+    debugPrint('🔥 Watching connection status');
+    
+    // Emit initial connection status immediately
+    try {
+      final initialSnapshot = await FirebaseDatabase.instance
+          .ref()
+          .child('.info/connected')
+          .get();
+      final initialStatus = initialSnapshot.value == true;
+      debugPrint('🔥 Initial connection status: $initialStatus');
+      yield initialStatus;
+    } catch (e) {
+      debugPrint('🔥 Error checking initial connection: $e');
+      yield false;
+    }
+
+    // Continue streaming real-time updates
+    await for (final event in FirebaseDatabase.instance
+        .ref()
+        .child('.info/connected')
+        .onValue) {
+      try {
+        final isConnected = event.snapshot.value == true;
+        debugPrint('🔥 Connection status update: $isConnected');
+        yield isConnected;
+      } catch (e) {
+        debugPrint('🔥 Error monitoring connection: $e');
+        yield false;
+      }
+    }
+  }
+
+  /// Check current connection status (one-time check)
+  Future<bool> checkConnection() async {
+    try {
+      final snapshot = await FirebaseDatabase.instance
+          .ref()
+          .child('.info/connected')
+          .get();
+      return snapshot.value == true;
+    } catch (e) {
+      debugPrint('🔥 Error checking connection: $e');
+      return false;
+    }
+  }
 }

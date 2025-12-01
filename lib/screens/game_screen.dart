@@ -7,11 +7,7 @@ import 'package:tictactoe/services/game_service.dart';
 import 'package:tictactoe/widgets/game_board.dart';
 
 class GameScreen extends ConsumerWidget {
-  const GameScreen({
-    super.key,
-    required this.gameId,
-    required this.playerName,
-  });
+  const GameScreen({super.key, required this.gameId, required this.playerName});
 
   final String gameId;
   final String playerName;
@@ -77,10 +73,7 @@ class GameScreen extends ConsumerWidget {
         data: (game) {
           if (game == null) {
             return const Center(
-              child: Text(
-                'Game not found',
-                style: TextStyle(fontSize: 18),
-              ),
+              child: Text('Game not found', style: TextStyle(fontSize: 18)),
             );
           }
 
@@ -126,9 +119,20 @@ class _GameContent extends StatelessWidget {
   final String playerName;
   final String gameId;
 
+  void _copyGameId(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: gameId));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Game ID copied to clipboard!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   String _getStatusMessage() {
     if (game.status == GameStatus.waiting) {
-      return 'Waiting for opponent...\nShare this game ID: $gameId';
+      return 'Waiting for opponent...';
     }
 
     if (game.status == GameStatus.finished) {
@@ -210,6 +214,31 @@ class _GameContent extends StatelessWidget {
     }
   }
 
+  Future<void> _restartGame(BuildContext context) async {
+    try {
+      final gameService = GameService();
+      await gameService.restartGame(gameId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Game restarted!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error restarting game: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -259,18 +288,51 @@ class _GameContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _getStatusColor().withOpacity(0.1),
+              color: _getStatusColor().withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: _getStatusColor(), width: 2),
             ),
-            child: Text(
-              _getStatusMessage(),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: _getStatusColor(),
-              ),
-              textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Text(
+                  _getStatusMessage(),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _getStatusColor(),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (game.status == GameStatus.waiting) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          gameId,
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 14,
+                            color: _getStatusColor(),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.copy),
+                        iconSize: 20,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => _copyGameId(context),
+                        tooltip: 'Copy Game ID',
+                        color: _getStatusColor(),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
 
@@ -280,11 +342,50 @@ class _GameContent extends StatelessWidget {
           GameBoard(
             board: game.board,
             onCellTapped: (row, col) => _onCellTapped(context, row, col),
-            enabled: game.status == GameStatus.playing &&
+            enabled:
+                game.status == GameStatus.playing &&
                 game.currentPlayer == playerName,
           ),
 
           const SizedBox(height: 24),
+
+          // Restart button for finished games
+          if (game.status == GameStatus.finished)
+            Card(
+              elevation: 2,
+              color: Colors.green.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Icon(Icons.refresh, color: Colors.green, size: 32),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Want to play again?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => _restartGame(context),
+                      icon: const Icon(Icons.replay, size: 20),
+                      label: const Text('Restart Game'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Game info
           if (game.status == GameStatus.waiting)
@@ -295,21 +396,54 @@ class _GameContent extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.blue),
-                    const SizedBox(height: 8),
+                    const Icon(Icons.share, color: Colors.blue, size: 32),
+                    const SizedBox(height: 12),
                     const Text(
                       'Share the Game ID with a friend to start playing!',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    SelectableText(
-                      gameId,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: SelectableText(
+                              gameId,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () => _copyGameId(context),
+                      icon: const Icon(Icons.content_copy, size: 18),
+                      label: const Text('Copy Game ID'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -386,4 +520,3 @@ class _PlayerInfo extends StatelessWidget {
     );
   }
 }
-

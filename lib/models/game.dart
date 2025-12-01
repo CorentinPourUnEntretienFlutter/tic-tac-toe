@@ -54,13 +54,20 @@ abstract class Game with _$Game {
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
 
   /// Create a new game with player 1
-  factory Game.newGame({required String id, required String player1Name}) {
+  factory Game.newGame({
+    required String id,
+    required String player1Name,
+    required int boardSize,
+  }) {
     return Game(
       id: id,
       player1Name: player1Name,
       player2Name: null,
       status: GameStatus.waiting,
-      board: List.generate(3, (_) => List.generate(3, (_) => CellState.empty)),
+      board: List.generate(
+        boardSize,
+        (_) => List.generate(boardSize, (_) => CellState.empty),
+      ),
       currentPlayer: null,
       winner: null,
       isDraw: false,
@@ -68,6 +75,8 @@ abstract class Game with _$Game {
       lastMoveAt: null,
     );
   }
+
+  int get size => board.length; // Get the size of the board
 
   // /// Check if a player can join the game
   bool get canJoin => status == GameStatus.waiting && player2Name == null;
@@ -101,6 +110,21 @@ abstract class Game with _$Game {
     );
   }
 
+  /// Restart the game with the same players
+  Game restart() {
+    return copyWith(
+      board: List.generate(
+        size,
+        (_) => List.generate(size, (_) => CellState.empty),
+      ),
+      status: GameStatus.playing,
+      currentPlayer: player1Name, // Player 1 (X) starts
+      winner: null,
+      isDraw: false,
+      lastMoveAt: DateTime.now(),
+    );
+  }
+
   /// Make a move at the specified position
   Game makeMove(int row, int col, String playerName) {
     if (!isPlayerTurn(playerName)) {
@@ -113,16 +137,16 @@ abstract class Game with _$Game {
 
     // Create new board with the move
     final newBoard = List.generate(
-      3,
+      size,
       (r) => List.generate(
-        3,
+        size,
         (c) =>
             (r == row && c == col) ? getPlayerSymbol(playerName) : board[r][c],
       ),
     );
 
     // Check for winner
-    final winner = _checkWinner(newBoard);
+    final winner = _checkWinner(newBoard, size);
     final isDraw = winner == null && _isBoardFull(newBoard);
 
     // Determine next player
@@ -144,34 +168,62 @@ abstract class Game with _$Game {
   }
 
   /// Check if there's a winner
-  static CellState? _checkWinner(List<List<CellState>> board) {
+  /// Works dynamically with any board size
+  static CellState? _checkWinner(List<List<CellState>> board, int size) {
     // Check rows
-    for (var row in board) {
-      if (row[0] != CellState.empty && row[0] == row[1] && row[1] == row[2]) {
-        return row[0];
+    for (var row = 0; row < size; row++) {
+      final firstCell = board[row][0];
+      if (firstCell != CellState.empty) {
+        var allMatch = true;
+        for (var col = 1; col < size; col++) {
+          if (board[row][col] != firstCell) {
+            allMatch = false;
+            break;
+          }
+        }
+        if (allMatch) return firstCell;
       }
     }
 
     // Check columns
-    for (var col = 0; col < 3; col++) {
-      if (board[0][col] != CellState.empty &&
-          board[0][col] == board[1][col] &&
-          board[1][col] == board[2][col]) {
-        return board[0][col];
+    for (var col = 0; col < size; col++) {
+      final firstCell = board[0][col];
+      if (firstCell != CellState.empty) {
+        var allMatch = true;
+        for (var row = 1; row < size; row++) {
+          if (board[row][col] != firstCell) {
+            allMatch = false;
+            break;
+          }
+        }
+        if (allMatch) return firstCell;
       }
     }
 
-    // Check diagonals
-    if (board[0][0] != CellState.empty &&
-        board[0][0] == board[1][1] &&
-        board[1][1] == board[2][2]) {
-      return board[0][0];
+    // Check main diagonal (top-left to bottom-right)
+    final mainDiagFirst = board[0][0];
+    if (mainDiagFirst != CellState.empty) {
+      var allMatch = true;
+      for (var i = 1; i < size; i++) {
+        if (board[i][i] != mainDiagFirst) {
+          allMatch = false;
+          break;
+        }
+      }
+      if (allMatch) return mainDiagFirst;
     }
 
-    if (board[0][2] != CellState.empty &&
-        board[0][2] == board[1][1] &&
-        board[1][1] == board[2][0]) {
-      return board[0][2];
+    // Check anti-diagonal (top-right to bottom-left)
+    final antiDiagFirst = board[0][size - 1];
+    if (antiDiagFirst != CellState.empty) {
+      var allMatch = true;
+      for (var i = 1; i < size; i++) {
+        if (board[i][size - 1 - i] != antiDiagFirst) {
+          allMatch = false;
+          break;
+        }
+      }
+      if (allMatch) return antiDiagFirst;
     }
 
     return null;

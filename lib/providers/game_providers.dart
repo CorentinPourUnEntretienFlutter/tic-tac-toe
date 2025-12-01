@@ -12,4 +12,3 @@ final gameStreamProvider = StreamProvider.family<Game?, String>((ref, gameId) {
   final service = ref.watch(gameServiceProvider);
   return service.watchGame(gameId);
 });
-
