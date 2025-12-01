@@ -60,7 +60,7 @@ class RealtimeDatabaseService {
   /// Emits immediately with initial connection check
   Stream<bool> get connectionStatus async* {
     debugPrint('🔥 Watching connection status');
-    
+
     // Emit initial connection status immediately
     try {
       final initialSnapshot = await FirebaseDatabase.instance
@@ -76,10 +76,8 @@ class RealtimeDatabaseService {
     }
 
     // Continue streaming real-time updates
-    await for (final event in FirebaseDatabase.instance
-        .ref()
-        .child('.info/connected')
-        .onValue) {
+    await for (final event
+        in FirebaseDatabase.instance.ref().child('.info/connected').onValue) {
       try {
         final isConnected = event.snapshot.value == true;
         debugPrint('🔥 Connection status update: $isConnected');
