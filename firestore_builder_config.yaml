@@ -1,0 +1,11 @@
+firestore_builder:
+  project_name: tictactoe
+  output: lib/firestore
+  collections:
+    - collection:
+        collection_name: Games
+        model_name: GameState
+        fields:
+          - currentPlayer: String?
+          - winner: String?
+          - isDraw: bool
