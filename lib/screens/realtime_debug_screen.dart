@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tictactoe/providers/realtime_database_providers.dart';
+import 'package:tictactoe/widgets/app_scaffold.dart';
 
 class RealtimeDebugScreen extends ConsumerStatefulWidget {
   const RealtimeDebugScreen({super.key});
@@ -148,7 +149,7 @@ class _RealtimeDebugScreenState extends ConsumerState<RealtimeDebugScreen> {
   Widget build(BuildContext context) {
     final databaseStream = ref.watch(databasePathProvider(_currentPath));
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Realtime Database Debug'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,

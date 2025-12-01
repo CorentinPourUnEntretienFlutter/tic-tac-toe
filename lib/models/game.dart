@@ -54,7 +54,7 @@ abstract class Game with _$Game {
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
 
   /// Create a new game with player 1
-  factory Game.newGame({
+  factory Game.newOnlineGame({
     required String id,
     required String player1Name,
     required int boardSize,
@@ -62,7 +62,6 @@ abstract class Game with _$Game {
     return Game(
       id: id,
       player1Name: player1Name,
-      player2Name: null,
       status: GameStatus.waiting,
       board: List.generate(
         boardSize,
@@ -73,6 +72,25 @@ abstract class Game with _$Game {
       isDraw: false,
       createdAt: DateTime.now(),
       lastMoveAt: null,
+    );
+  }
+
+  factory Game.newOfflineGame({required int boardSize}) {
+    final player1Name = 'Player 1';
+    final player2Name = 'Player 2';
+    return Game(
+      id: '',
+      player1Name: player1Name,
+      player2Name: player2Name,
+      status: GameStatus.playing,
+      board: List.generate(
+        boardSize,
+        (_) => List.generate(boardSize, (_) => CellState.empty),
+      ),
+      currentPlayer: player1Name,
+      winner: null,
+      isDraw: false,
+      createdAt: DateTime.now(),
     );
   }
 
@@ -123,6 +141,22 @@ abstract class Game with _$Game {
       isDraw: false,
       lastMoveAt: DateTime.now(),
     );
+  }
+
+  bool canMakeMove(int row, int col, String playerName) {
+    if (!isPlayerTurn(playerName)) {
+      return false;
+    }
+
+    if (row > size - 1 || col > size - 1) {
+      return false;
+    }
+
+    if (board[row][col] != CellState.empty) {
+      return false;
+    }
+
+    return true;
   }
 
   /// Make a move at the specified position

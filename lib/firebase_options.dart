@@ -46,7 +46,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '215697649302',
     projectId: 'tic-tac-toe-765e4',
     authDomain: 'tic-tac-toe-765e4.firebaseapp.com',
-    databaseURL: 'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'tic-tac-toe-765e4.firebasestorage.app',
   );
 
@@ -55,7 +56,8 @@ class DefaultFirebaseOptions {
     appId: '1:215697649302:android:a5d4a0ef9c5fbaf4645cb7',
     messagingSenderId: '215697649302',
     projectId: 'tic-tac-toe-765e4',
-    databaseURL: 'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'tic-tac-toe-765e4.firebasestorage.app',
   );
 
@@ -64,7 +66,8 @@ class DefaultFirebaseOptions {
     appId: '1:215697649302:ios:0259e0d19132bb7b645cb7',
     messagingSenderId: '215697649302',
     projectId: 'tic-tac-toe-765e4',
-    databaseURL: 'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'tic-tac-toe-765e4.firebasestorage.app',
     iosBundleId: 'com.example.tictactoe',
   );
@@ -74,7 +77,8 @@ class DefaultFirebaseOptions {
     appId: '1:215697649302:ios:0259e0d19132bb7b645cb7',
     messagingSenderId: '215697649302',
     projectId: 'tic-tac-toe-765e4',
-    databaseURL: 'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'tic-tac-toe-765e4.firebasestorage.app',
     iosBundleId: 'com.example.tictactoe',
   );
@@ -85,8 +89,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '215697649302',
     projectId: 'tic-tac-toe-765e4',
     authDomain: 'tic-tac-toe-765e4.firebaseapp.com',
-    databaseURL: 'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://tic-tac-toe-765e4-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'tic-tac-toe-765e4.firebasestorage.app',
   );
-
 }

@@ -2,10 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tictactoe/firebase_options.dart';
-import 'package:tictactoe/screens/name_entry_screen.dart';
-import 'package:tictactoe/screens/realtime_debug_screen.dart';
+import 'package:tictactoe/router.dart';
+import 'package:tictactoe/theme/app_theme.dart';
+import 'package:tictactoe/theme/app_theme.provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,45 +34,30 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tic Tac Toe',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const NameEntryScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+    final materialAppBarTheme = AppBarTheme.of(context);
 
-// Debug screen helper - can be accessed via a debug menu if needed
-class DebugMenuScreen extends StatelessWidget {
-  const DebugMenuScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Debug Menu'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          ListTile(
-            leading: const Icon(Icons.bug_report),
-            title: const Text('Realtime Database Debug'),
-            subtitle: const Text('View and test Firebase Realtime Database'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const RealtimeDebugScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+    return AppThemeProvider(
+      child: Builder(
+        builder: (context) {
+          final materialThemData = ThemeData(
+            appBarTheme: materialAppBarTheme.copyWith(
+              systemOverlayStyle:
+                  context.appTheme.brightness == AppBrightness.light
+                  ? SystemUiOverlayStyle.dark
+                  : SystemUiOverlayStyle.light,
+              titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: context.appTheme.color.onPrimary2,
+              ),
+              foregroundColor: context.appTheme.color.onPrimary2,
+            ),
+          );
+          return MaterialApp.router(
+            theme: materialThemData,
+            title: 'Tic Tac Toe',
+            routerConfig: appRouter,
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

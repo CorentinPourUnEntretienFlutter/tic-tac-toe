@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tictactoe/theme/app_theme.dart';
+import 'package:tictactoe/widgets/app_scaffold.dart';
+import 'package:tictactoe/widgets/liquid_glass_card.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tictactoe/models/game.dart';
-import 'package:tictactoe/screens/game_screen.dart';
-import 'package:tictactoe/services/game_service.dart';
+import 'package:tictactoe/providers/game_providers.dart';
 import 'package:tictactoe/providers/realtime_database_providers.dart';
 
 class GameSelectionScreen extends ConsumerStatefulWidget {
@@ -33,21 +36,18 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
       const uuid = Uuid();
       final gameId = uuid.v4();
 
-      final game = Game.newGame(
+      final game = Game.newOnlineGame(
         id: gameId,
         player1Name: widget.playerName,
         boardSize: 3,
       );
 
-      final gameService = GameService();
+      final gameService = ref.read(gameServiceProvider);
       await gameService.createGame(game);
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) =>
-                GameScreen(gameId: gameId, playerName: widget.playerName),
-          ),
+        context.push(
+          '/online-pseudo/game-selection/$gameId?playerName=${Uri.encodeComponent(widget.playerName)}',
         );
       }
     } catch (e) {
@@ -82,8 +82,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final gameService = GameService();
-      final game = await gameService.getGame(gameId);
+      final gameService = ref.read(gameServiceProvider);
+      final game = await gameService.getGame(gameId: gameId);
 
       if (game == null) {
         throw Exception('Game not found');
@@ -98,11 +98,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
       await gameService.updateGame(updatedGame);
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) =>
-                GameScreen(gameId: gameId, playerName: widget.playerName),
-          ),
+        context.push(
+          '/online-pseudo/game-selection/$gameId?playerName=${Uri.encodeComponent(widget.playerName)}',
         );
       }
     } catch (e) {
@@ -123,23 +120,38 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorTheme = context.appTheme.color;
     final connectionStatus = ref.watch(databaseConnectionStatusProvider);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
-        title: Text('Welcome, ${widget.playerName}!'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: colorTheme.mainBackground.withValues(alpha: 0.5),
+
+        title: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: 'Welcome, '),
+              TextSpan(
+                text: widget.playerName,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: '!'),
+            ],
+          ),
+        ),
         actions: [
           // Connection status indicator
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(right: 16.0, left: 10.0),
             child: connectionStatus.when(
               data: (isConnected) => Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     isConnected ? Icons.cloud_done : Icons.cloud_off,
-                    color: isConnected ? Colors.green : Colors.red,
+                    color: isConnected
+                        ? Colors.green
+                        : Colors.red, // todo: use color theme
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -147,7 +159,9 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                     isConnected ? 'Connected' : 'Offline',
                     style: TextStyle(
                       fontSize: 14,
-                      color: isConnected ? Colors.green : Colors.red,
+                      color: isConnected
+                          ? Colors.green
+                          : Colors.red, // todo: use color theme
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -165,7 +179,7 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                   Text('Checking...', style: TextStyle(fontSize: 14)),
                 ],
               ),
-              error: (_, __) => const Row(
+              error: (_, _) => const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.error_outline, color: Colors.orange, size: 20),
@@ -219,33 +233,36 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                           )
                         : const SizedBox.shrink(),
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                   ),
 
                   const SizedBox(height: 24),
 
                   // Create game section
-                  Card(
-                    elevation: 4,
+                  LiquidGlassCard(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.add_circle_outline,
                             size: 64,
-                            color: Colors.green,
+                            color: colorTheme.secondary,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Create New Game',
                             style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorTheme.onPrimary2,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Start a new game and share the ID with a friend',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorTheme.onPrimary2),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
@@ -258,8 +275,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                                 horizontal: 32,
                                 vertical: 16,
                               ),
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
+                              backgroundColor: colorTheme.secondary,
+                              foregroundColor: colorTheme.onSecondary,
                             ),
                           ),
                         ],
@@ -287,33 +304,49 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                   const SizedBox(height: 32),
 
                   // Join game section
-                  Card(
-                    elevation: 4,
+                  LiquidGlassCard(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          const Icon(Icons.login, size: 64, color: Colors.blue),
+                          Icon(
+                            Icons.login,
+                            size: 64,
+                            color: colorTheme.onPrimary2,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'Join Existing Game',
                             style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorTheme.onPrimary2,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Enter the game ID shared by your friend',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorTheme.onPrimary2),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
                           TextField(
                             controller: _gameIdController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Game ID',
                               hintText: 'Enter game ID',
-                              prefixIcon: Icon(Icons.tag),
-                              border: OutlineInputBorder(),
+                              hintStyle: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: colorTheme.onPrimary2),
+                              prefixIcon: Icon(
+                                Icons.tag,
+                                color: colorTheme.onPrimary2,
+                              ),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: colorTheme.onPrimary2,
+                                ),
+                              ),
                             ),
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) => _joinGame(),
@@ -328,8 +361,8 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
                                 horizontal: 32,
                                 vertical: 16,
                               ),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
+                              backgroundColor: colorTheme.mainBackground,
+                              foregroundColor: colorTheme.onMainBackground,
                             ),
                           ),
                         ],
